@@ -16,12 +16,28 @@ WINDOW_SIZE = WINDOW_SECONDS * SAMPLING_RATE
 
 
 def load_accelerometer_data():
+    """
+        Load accelerometer data sorted by participant and time.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Accelerometer data with columns ['pid', 'time', 'x', 'y', 'z'].
+        """
     df = pd.read_csv(ACC_FILE)
     df = df.sort_values(["pid", "time"]).reset_index(drop=True)
     return df
 
 
 def load_tac_data():
+    """
+    Load cleaned TAC data for all participants.
+
+    Returns
+    -------
+    dict[str, pandas.DataFrame]
+        Mapping from participant ID to TAC time series.
+    """
     tac_data = {}
 
     for file in TAC_DIR.glob("*_clean_TAC.csv"):
@@ -34,6 +50,21 @@ def load_tac_data():
 
 
 def create_windows_for_pid(acc_df, pid):
+    """
+      Segment accelerometer data for one participant into fixed-size windows.
+
+      Parameters
+      ----------
+      acc_df : pandas.DataFrame
+          Full accelerometer dataset.
+      pid : str
+          Participant ID.
+
+      Returns
+      -------
+      list[pandas.DataFrame]
+          Non-overlapping accelerometer windows.
+      """
     df = acc_df[acc_df["pid"] == pid].copy()
 
     windows = []
@@ -48,6 +79,23 @@ def create_windows_for_pid(acc_df, pid):
 
 
 def label_window(window, tac_df, cutoff=0.08):
+    """
+       Assign a sobriety label to an accelerometer window.
+
+       Parameters
+       ----------
+       window : pandas.DataFrame
+           Accelerometer window.
+       tac_df : pandas.DataFrame
+           Cleaned TAC data for the participant.
+       cutoff : float, optional
+           Intoxication threshold (default: 0.08).
+
+       Returns
+       -------
+       tuple[float, int]
+           TAC value and binary label (0 = sober, 1 = intoxicated).
+       """
     mid_time = window["time"].mean() / 1000
 
     index = (tac_df["timestamp"] - mid_time).abs().idxmin()
@@ -59,6 +107,25 @@ def label_window(window, tac_df, cutoff=0.08):
 
 
 def build_labeled_windows(acc_df, tac_data):
+    """
+        Build labeled accelerometer windows for all participants.
+
+        Parameters
+        ----------
+        acc_df : pandas.DataFrame
+            Full accelerometer dataset.
+        tac_data : dict[str, pandas.DataFrame]
+            TAC data per participant.
+
+        Returns
+        -------
+        X : numpy.ndarray
+            Accelerometer windows of shape (n_windows, window_size, 3).
+        y : numpy.ndarray
+            Binary labels per window.
+        meta : pandas.DataFrame
+            Metadata for each window.
+        """
     X = []
     y = []
     meta = []
