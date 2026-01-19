@@ -1,0 +1,36 @@
+# =========================
+# Data (large / generated)
+# =========================
+
+# Raw input data
+data/raw_tac/
+
+# Cleaned / generated data
+data/clean_tac/
+
+# Large merged datasets
+data/all_accelerometer_data_*.csv
+
+# =========================
+# Keep small meta files
+# =========================
+!data/pids.txt
+!data/phone_types.csv
+!data/README.txt
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# =========================
+# IDE / OS
+# =========================
+.idea/
+.vscode/
+.DS_Store
