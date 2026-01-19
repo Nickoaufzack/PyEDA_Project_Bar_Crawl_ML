@@ -15,7 +15,6 @@ SAMPLING_RATE = 40
 WINDOW_SIZE = WINDOW_SECONDS * SAMPLING_RATE
 
 
-
 def load_accelerometer_data():
     df = pd.read_csv(ACC_FILE)
     df = df.sort_values(["pid", "time"]).reset_index(drop=True)
@@ -49,14 +48,14 @@ def create_windows_for_pid(acc_df, pid):
 
 
 def label_window(window, tac_df, cutoff=0.08):
-    mid_time = window["time"].mean()
+    mid_time = window["time"].mean() / 1000
 
-    idx = (tac_df["timestamp"] - mid_time).abs().idxmin()
-    tac_value = tac_df.loc[idx, "TAC_Reading"]
+    index = (tac_df["timestamp"] - mid_time).abs().idxmin()
+    tac_value = tac_df.loc[index, "TAC_Reading"]
 
     label = int(tac_value >= cutoff)
 
-    return label, tac_value
+    return tac_value, label
 
 
 def build_labeled_windows(acc_df, tac_data):
@@ -68,33 +67,43 @@ def build_labeled_windows(acc_df, tac_data):
         windows = create_windows_for_pid(acc_df, pid)
         tac_df = tac_data[pid]
 
-        for w in windows:
-            label, tac_val = label_window(w, tac_df)
+        for window in windows:
+            tac_val, label = label_window(window, tac_df)
 
-            X.append(w[["x", "y", "z"]].values)
+            X.append(window[["x", "y", "z"]].values)
             y.append(label)
             meta.append({
                 "pid": pid,
                 "tac": tac_val,
-                "start_time": w["time"].iloc[0]
+                "start_time": window["time"].iloc[0]
             })
 
     return np.array(X), np.array(y), pd.DataFrame(meta)
 
 
 if __name__ == "__main__":
-    # acc_df = load_accelerometer_data()
-    # tac_data = load_tac_data()
-    #
-    # X, y, meta = build_labeled_windows(acc_df, tac_data)
-    #
-    # print("Windows:", X.shape)
-    # print("Labels:", np.bincount(y))
-    # print(meta.head())
+    acc_df = load_accelerometer_data()
+    tac_data = load_tac_data()
 
-    print(load_tac_data())
+    X, y, meta = build_labeled_windows(acc_df, tac_data)
 
+    summary = meta.copy()
+    summary["label"] = y
 
+    summary_shuffled = summary.sample(frac=1, random_state=42).reset_index(drop=True)
 
+    # pick a random window
+    i = summary_shuffled.index[0]
 
+    print("META INFO")
+    print(summary_shuffled.loc[i])
 
+    print("\nWINDOW SHAPE:", X[i].shape)
+
+    window_df = pd.DataFrame(
+        X[i],
+        columns=["x", "y", "z"]
+    )
+
+    print("\nACCELEROMETER WINDOW (first 10 rows)")
+    print(window_df.head(10))
