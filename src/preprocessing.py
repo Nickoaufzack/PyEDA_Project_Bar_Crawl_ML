@@ -106,3 +106,6 @@ if __name__ == "__main__":
 
     print("\nACCELEROMETER WINDOW (first 10 rows)")
     print(window_df.head(10))
+
+
+    #raphael stinkt hööisch
