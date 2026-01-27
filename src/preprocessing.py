@@ -2,6 +2,8 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
+from src.features import extract_all_features
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 DATA_DIR = BASE_DIR / "data"
@@ -34,6 +36,9 @@ def load_tac_data():
 
 
 def create_windows_for_pid(acc_df, pid):
+    """
+    slice accelerometer data into 10-second windows for a participant
+    """
     df = acc_df[acc_df["pid"] == pid].copy()
 
     windows = []
@@ -48,6 +53,9 @@ def create_windows_for_pid(acc_df, pid):
 
 
 def label_window(window, tac_df, cutoff=0.08):
+    """
+    assign label sober (0) or intoxicated (1) based on TAC value
+    """
     mid_time = window["time"].mean() / 1000
 
     index = (tac_df["timestamp"] - mid_time).abs().idxmin()
@@ -59,6 +67,9 @@ def label_window(window, tac_df, cutoff=0.08):
 
 
 def build_labeled_windows(acc_df, tac_data):
+    """
+    build labeled windows for all participants
+    """
     X = []
     y = []
     meta = []
@@ -70,7 +81,7 @@ def build_labeled_windows(acc_df, tac_data):
         for window in windows:
             tac_val, label = label_window(window, tac_df)
 
-            X.append(window[["x", "y", "z"]].values)
+            X.append(window[["x", "y", "z"]])
             y.append(label)
             meta.append({
                 "pid": pid,
@@ -78,31 +89,16 @@ def build_labeled_windows(acc_df, tac_data):
                 "start_time": window["time"].iloc[0]
             })
 
-    return np.array(X), np.array(y), pd.DataFrame(meta)
+    return X, np.array(y), pd.DataFrame(meta)
 
 
-if __name__ == "__main__":
-    acc_df = load_accelerometer_data()
-    tac_data = load_tac_data()
 
-    X, y, meta = build_labeled_windows(acc_df, tac_data)
 
-    summary = meta.copy()
-    summary["label"] = y
 
-    summary_shuffled = summary.sample(frac=1, random_state=42).reset_index(drop=True)
 
-    i = summary_shuffled.index[0]
 
-    print("META INFO")
-    print(summary_shuffled.loc[i])
 
-    print("\nWINDOW SHAPE:", X[i].shape)
 
-    window_df = pd.DataFrame(
-        X[i],
-        columns=["x", "y", "z"]
-    )
 
-    print("\nACCELEROMETER WINDOW (first 10 rows)")
-    print(window_df.head(10))
+
+
