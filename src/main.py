@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
 
     print("\nTraining Random Forest...")
-    model, X_test, y_test, y_pred = train_random_forest(
+    model, X_test, y_test, y_pred, y_proba = train_random_forest(
         X_features,
         y,
         meta,
@@ -36,15 +36,18 @@ if __name__ == "__main__":
     print("\nPrediction sanity check:")
     print("y_test shape:", y_test.shape)
     print("y_pred shape:", y_pred.shape)
+    print("y_proba shape:", y_proba.shape)
     print("First 20 predictions:", y_pred[:20])
 
     print("Saving Report...")
     REPORT_PATH = RESULTS_DIR / "evaluation_report.pdf"
 
     evaluate_model(
-        y_true=y_test,
+        y_test=y_test,
         y_pred=y_pred,
-        output_path=REPORT_PATH
+        y_proba=y_proba,
+        results_dir=RESULTS_DIR,
+        model_name="Random Forest (Basic Features)"
     )
 
     print(f"\nEvaluation report saved to {REPORT_PATH}")
