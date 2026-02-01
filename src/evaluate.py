@@ -2,6 +2,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
 from sklearn.metrics import (
     accuracy_score,
@@ -17,7 +18,7 @@ from sklearn.metrics import (
 
 def compute_metrics(y_test, y_pred):
     """
-    Compute basic classification metrics.
+    Compute basic classification metrics. 
     """
     acc = accuracy_score(y_test, y_pred)
     report = classification_report(y_test, y_pred, digits=4)
@@ -124,8 +125,8 @@ def generate_pdf_report(metrics, plot_paths, results_dir, model_name):
 
     return pdf_path
 
-def evaluate_model(y_test, y_pred, y_proba, results_dir, model_name="Random Forest"
-):
+
+def evaluate_model(y_test, y_pred, y_proba, results_dir, model_name="Random Forest"):
     """
     Run evaluation, generate plots and PDF report.
     """
@@ -138,10 +139,12 @@ def evaluate_model(y_test, y_pred, y_proba, results_dir, model_name="Random Fore
     cm_path = results_dir / "confusion_matrix.png"
     roc_path = results_dir / "roc_curve.png"
     pr_path = results_dir / "precision_recall_curve.png"
+    overview_path = results_dir / "pipeline_overview.pdf"
 
     plot_confusion_matrix(metrics["confusion_matrix"], cm_path)
     plot_roc_curve(y_test, y_proba, roc_path)
     plot_precision_recall_curve(y_test, y_proba, pr_path)
+    plot_pipeline_overview(overview_path)
 
     pdf_path = generate_pdf_report(
         metrics,
@@ -155,3 +158,67 @@ def evaluate_model(y_test, y_pred, y_proba, results_dir, model_name="Random Fore
     print(f"PDF saved to: {pdf_path}")
 
 
+def plot_pipeline_overview(save_path):
+    """
+    Create a clean pipeline overview diagram for the Methods section.
+    Saves as vector PDF/PNG (depending on extension in save_path).
+    """
+    fig, ax = plt.subplots(figsize=(11, 3.2))
+    ax.set_axis_off()
+
+    # Helper to draw a rounded box with centered text
+    def box(x, y, w, h, text):
+        rect = FancyBboxPatch(
+            (x, y), w, h,
+            boxstyle="round,pad=0.02,rounding_size=0.04",
+            linewidth=1.2,
+            facecolor="white"
+        )
+        ax.add_patch(rect)
+        ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=10)
+
+    def arrow(x1, y1, x2, y2):
+        arr = FancyArrowPatch(
+            (x1, y1), (x2, y2),
+            arrowstyle="->", mutation_scale=12,
+            linewidth=1.1
+        )
+        ax.add_patch(arr)
+
+    # Layout coordinates in [0,1] space
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+
+    y = 0.35
+    h = 0.32
+    w = 0.14
+    gap = 0.03
+    x0 = 0.03
+
+    labels = [
+        "Raw Data\n(accel x,y,z + TAC)",
+        "Sort\n(pid, time)",
+        "Windowing\n(10s @ 40Hz)",
+        "Labeling\n(nearest TAC)",
+        "Features\n(15 stats)",
+        "Split\n(participant-wise)",
+        "Random Forest\n(700 trees)",
+        "Metrics\n(ROC/PR/CM)"
+    ]
+
+    xs = []
+    x = x0
+    for lab in labels:
+        box(x, y, w, h, lab)
+        xs.append(x)
+        x += w + gap
+
+    # Arrows between boxes
+    for i in range(len(xs) - 1):
+        arrow(xs[i] + w, y + h / 2, xs[i + 1], y + h / 2)
+
+    ax.text(0.03, 0.92, "Reproduction pipeline overview", fontsize=11)
+
+    fig.tight_layout()
+    fig.savefig(save_path, bbox_inches="tight")
+    plt.close(fig)

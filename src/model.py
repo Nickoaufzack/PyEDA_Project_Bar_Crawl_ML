@@ -34,7 +34,7 @@ def split_by_participant(X_features, y, meta, test_size=0.25, random_state=69):
 
 def train_random_forest(X_features, y, meta, test_size=0.25, random_state=69):
     """
-   Train a Random Forest classifier with participant-wise split.
+    Train a Random Forest classifier with participant-wise split.
     """
     X_train, X_test, y_train, y_test = split_by_participant(
         X_features,

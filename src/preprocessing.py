@@ -90,15 +90,3 @@ def build_labeled_windows(acc_df, tac_data):
             })
 
     return X, np.array(y), pd.DataFrame(meta)
-
-
-
-
-
-
-
-
-
-
-
-
