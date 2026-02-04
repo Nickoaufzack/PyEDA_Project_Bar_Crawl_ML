@@ -1,9 +1,7 @@
 import time
 import numpy as np
-from pathlib import Path
-
 from src.preprocessing import load_accelerometer_data, load_tac_data, build_labeled_windows, RESULTS_DIR
-from src.features import extract_all_features_for_all_windows
+from src.features import extract_features_for_all_windows
 from src.model import train_random_forest
 from src.evaluate import evaluate_model
 
@@ -18,11 +16,10 @@ if __name__ == "__main__":
     X, y, meta = build_labeled_windows(acc_df, tac_data)
 
     print("\nExtracting features...")
-    X_features = extract_all_features_for_all_windows(X)
+    X_features = extract_features_for_all_windows(X)
 
     print("Feature matrix shape:", X_features.shape)
     print("Label distribution:", np.bincount(y))
-
 
     print("\nTraining Random Forest...")
     model, X_test, y_test, y_pred, y_proba = train_random_forest(
@@ -54,5 +51,3 @@ if __name__ == "__main__":
 
     elapsed = time.time() - start_time
     print(f"\nTotal runtime: {elapsed:.2f} seconds")
-
-    #What do we do here?

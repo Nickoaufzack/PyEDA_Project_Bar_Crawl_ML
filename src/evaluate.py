@@ -1,5 +1,4 @@
 from pathlib import Path
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
@@ -90,17 +89,13 @@ def generate_pdf_report(metrics, plot_paths, results_dir, model_name):
     pdf_path = results_dir / f"{model_name.replace(' ', '_')}_evaluation.pdf"
 
     with PdfPages(pdf_path) as pdf:
-        # --- Page 1: Summary ---
         fig, ax = plt.subplots(figsize=(8, 6))
         ax.axis("off")
         ax.text(0.05, 0.85, model_name, fontsize=18, weight="bold")
         ax.text(0.05, 0.65, f"Accuracy: {metrics['accuracy']:.4f}", fontsize=14)
-        ax.text(0.05, 0.45, "Participant-wise split (75/25)", fontsize=12)
-        ax.text(0.05, 0.30, "Basic accelerometer features", fontsize=12)
         pdf.savefig(fig)
         plt.close()
 
-        # --- Page 2: Classification report ---
         fig, ax = plt.subplots(figsize=(8, 6))
         ax.axis("off")
         ax.text(
@@ -114,7 +109,6 @@ def generate_pdf_report(metrics, plot_paths, results_dir, model_name):
         pdf.savefig(fig)
         plt.close()
 
-        # --- Remaining pages: plots ---
         for plot_path in plot_paths:
             fig = plt.figure(figsize=(8, 6))
             img = plt.imread(plot_path)
@@ -166,7 +160,6 @@ def plot_pipeline_overview(save_path):
     fig, ax = plt.subplots(figsize=(11, 3.2))
     ax.set_axis_off()
 
-    # Helper to draw a rounded box with centered text
     def box(x, y, w, h, text):
         rect = FancyBboxPatch(
             (x, y), w, h,
@@ -185,7 +178,6 @@ def plot_pipeline_overview(save_path):
         )
         ax.add_patch(arr)
 
-    # Layout coordinates in [0,1] space
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
 
