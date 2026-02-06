@@ -5,7 +5,7 @@ from scipy.stats import skew, kurtosis
 
 def extract_features(window):
     """
-    extract mean, std, min, max, RMS, median, ZCR and Min/Max Abs. from one accelerometer window
+    extract features from one accelerometer window
     """
     features = []
 
@@ -59,7 +59,7 @@ def extract_features(window):
 
 def extract_features_for_all_windows(X):
     """
-    extract all features for all windows
+    extract features for all windows
     """
     features = []
     for window in X:

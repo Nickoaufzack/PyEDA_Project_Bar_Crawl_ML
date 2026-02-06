@@ -30,24 +30,18 @@ if __name__ == "__main__":
         random_state=69
     )
 
-    print("\nPrediction sanity check:")
+    print("\nPrediction check:")
     print("y_test shape:", y_test.shape)
     print("y_pred shape:", y_pred.shape)
     print("y_proba shape:", y_proba.shape)
     print("First 20 predictions:", y_pred[:20])
 
-    print("Saving Report...")
-    REPORT_PATH = RESULTS_DIR / "evaluation_report.pdf"
-
     evaluate_model(
         y_test=y_test,
         y_pred=y_pred,
         y_proba=y_proba,
-        results_dir=RESULTS_DIR,
-        model_name="Random Forest (Basic Features)"
+        results_dir=RESULTS_DIR
     )
-
-    print(f"\nEvaluation report saved to {REPORT_PATH}")
 
     elapsed = time.time() - start_time
     print(f"\nTotal runtime: {elapsed:.2f} seconds")
